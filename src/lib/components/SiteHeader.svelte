@@ -9,6 +9,7 @@
   import { t } from '$lib/i18n';
 
   let menuOpen = false;
+  let scrolled = false;
   let shell;
   let activePreviewHref = '/students';
   let previewIndex = 0;
@@ -63,10 +64,18 @@
       if (desktopNav.matches) closeMenu();
     };
     desktopNav.addEventListener('change', onViewportChange);
+
+    const onScroll = () => {
+      scrolled = window.scrollY > 24;
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
     return () => {
       document.body.classList.remove('menu-open');
       clearInterval(previewTimer);
       desktopNav.removeEventListener('change', onViewportChange);
+      window.removeEventListener('scroll', onScroll);
     };
   });
 
@@ -115,32 +124,50 @@
   class="site-header"
   class:site-header--open={menuOpen}
   class:site-header--home={isHome}
+  class:site-header--scrolled={scrolled}
 >
   <div class="site-header__shell" bind:this={shell}>
     <a class="site-header__logo" href="/" aria-label="THE 8th — home">THE 8th</a>
     <nav class="site-header__bar-nav" aria-label="Principale">
       {#each headerNavLinks as link}
-        <a
-          class="site-header__bar-link"
-          class:site-header__bar-link--active={linkActive(link.href)}
-          class:site-header__bar-link--cta={link.cta}
-          href={link.href}
-        >
-          {$t(link.key)}
-        </a>
+        {#if !link.cta}
+          <a
+            class="site-header__bar-link"
+            class:site-header__bar-link--active={linkActive(link.href)}
+            href={link.href}
+          >
+            <span>{$t(link.key)}</span>
+          </a>
+        {/if}
       {/each}
     </nav>
-    <button
-      class="site-header__menu-btn"
-      type="button"
-      on:click={toggleMenu}
-      aria-expanded={menuOpen}
-      aria-label={menuOpen ? $t('nav.close') : $t('nav.menu')}
-    >
-      <span class="site-header__menu-icon" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </span>
-    </button>
+    <div class="site-header__actions">
+      {#each headerNavLinks as link}
+        {#if link.cta}
+          <a
+            class="site-header__bar-link site-header__bar-link--cta"
+            class:site-header__bar-link--active={linkActive(link.href)}
+            href={link.href}
+          >
+            {$t(link.key)}
+          </a>
+        {/if}
+      {/each}
+      <div class="site-header__bar-locale">
+        <LocaleToggle />
+      </div>
+      <button
+        class="site-header__menu-btn"
+        type="button"
+        on:click={toggleMenu}
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? $t('nav.close') : $t('nav.menu')}
+      >
+        <span class="site-header__menu-icon" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+    </div>
   </div>
 
   <aside
@@ -208,65 +235,99 @@
     z-index: 200;
     display: flex;
     justify-content: center;
-    padding: 0.45rem clamp(0.5rem, 2vw, 0.85rem);
+    padding: 0;
     pointer-events: none;
     background: transparent;
   }
 
+  /* scrim morbido in cima: tiene leggibili logo e link sopra hero chiari/immagini */
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6.5rem;
+    background: linear-gradient(180deg, rgba(6, 6, 10, 0.55) 0%, transparent 100%);
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.35s ease;
+  }
+
+  .site-header--scrolled::before,
+  .site-header--open::before {
+    opacity: 0;
+  }
+
   .site-header__shell {
-    --header-bar-bg: rgba(14, 14, 20, 0.36);
-    --header-bar-border: rgba(244, 243, 238, 0.14);
     --header-bar-text: #f4f3ee;
-    --header-bar-muted: rgba(244, 243, 238, 0.86);
+    --header-bar-muted: rgba(244, 243, 238, 0.7);
     pointer-events: auto;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 0.65rem;
-    width: min(calc(100% - 0.75rem), 78rem);
-    max-width: calc(100% - 0.5rem);
-    padding: 0.5rem 0.9rem 0.5rem 0.55rem;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    width: 100%;
+    max-width: none;
+    padding: clamp(0.7rem, 1.6vw, 1.05rem) clamp(1rem, 4vw, 2.75rem);
     color: var(--header-bar-text);
-    background: var(--header-bar-bg);
-    border: 1px solid var(--header-bar-border);
-    border-radius: 0.6rem;
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
-    box-shadow:
-      0 10px 32px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    text-shadow: none;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transition:
+      background 0.35s ease,
+      border-color 0.35s ease,
+      backdrop-filter 0.35s ease,
+      padding 0.35s ease;
   }
 
+  /* Stato scroll: la barra prende corpo (glass) */
+  .site-header--scrolled .site-header__shell,
   .site-header--open .site-header__shell {
-    border-radius: 0.75rem 0.75rem 0 0;
+    background: rgba(8, 8, 12, 0.62);
+    border-bottom-color: rgba(244, 243, 238, 0.12);
+    backdrop-filter: blur(22px) saturate(1.25);
+    -webkit-backdrop-filter: blur(22px) saturate(1.25);
+    padding-top: clamp(0.55rem, 1.2vw, 0.8rem);
+    padding-bottom: clamp(0.55rem, 1.2vw, 0.8rem);
   }
 
-  .site-header--open .site-header__bar-nav {
+  .site-header--open .site-header__bar-nav,
+  .site-header--open .site-header__bar-locale {
     display: none;
   }
 
   .site-header__logo {
     flex-shrink: 0;
     margin: 0;
-    padding: 0.42rem 0.7rem;
+    padding: 0;
     font-family: var(--font-display);
-    font-size: clamp(1.15rem, 2.2vw, 1.4rem);
-    font-weight: var(--weight-bold);
-    letter-spacing: 0.02em;
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+    font-weight: var(--weight-black, 800);
+    letter-spacing: -0.02em;
     text-transform: none;
     text-decoration: none;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.45rem;
+    color: var(--header-bar-text);
     line-height: 1;
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .site-header__bar-locale {
+    display: none;
+    --locale-border: rgba(244, 243, 238, 0.25);
+    --locale-muted: rgba(244, 243, 238, 0.5);
+    --locale-active: var(--color-linen);
   }
 
   .site-header__menu-btn {
     flex-shrink: 0;
-    margin-left: auto;
-    border: 1px solid var(--header-bar-border);
+    border: 1px solid rgba(244, 243, 238, 0.18);
     background: rgba(255, 255, 255, 0.08);
     color: var(--header-bar-text);
     border-radius: 999px;
@@ -442,21 +503,48 @@
   .site-header__bar-nav {
     display: none;
     align-items: center;
-    gap: 0.2rem;
-    margin-left: 0.5rem;
+    justify-content: center;
+    gap: clamp(0.25rem, 1.5vw, 1.5rem);
     flex: 1 1 auto;
     min-width: 0;
   }
 
   .site-header__bar-link {
-    padding: 0.45rem 0.82rem;
-    font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+    position: relative;
+    padding: 0.4rem 0.25rem;
+    font-family: var(--font-body);
+    font-size: clamp(0.82rem, 0.95vw, 0.95rem);
     font-weight: 500;
-    letter-spacing: 0.02em;
-    text-transform: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--header-bar-muted);
     white-space: nowrap;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: color 0.25s ease;
+  }
+
+  /* underline animato in stile moderno/agency */
+  .site-header__bar-link span {
+    position: relative;
+    display: inline-block;
+  }
+
+  .site-header__bar-link span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -0.28rem;
+    width: 100%;
+    height: 1px;
+    background: var(--accent-gold, #d9b25a);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+
+  .site-header__bar-link:hover span::after,
+  .site-header__bar-link--active span::after {
+    transform: scaleX(1);
+    transform-origin: left;
   }
 
   .site-header__bar-link:hover,
@@ -466,29 +554,33 @@
 
   .site-header__bar-link--active {
     color: var(--accent-gold);
-    font-weight: 600;
   }
 
   .site-header__bar-link--cta {
-    margin-left: auto;
-    border: 1px solid color-mix(in srgb, var(--accent-gold) 65%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-gold) 55%, transparent);
     border-radius: 999px;
-    padding-inline: 1.05rem;
-    margin-right: 0.1rem;
+    padding: 0.5rem 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--header-bar-text);
     background: color-mix(in srgb, var(--accent-gold) 12%, transparent);
+    transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
   }
 
   .site-header__bar-link--cta:hover,
   .site-header__bar-link--cta.site-header__bar-link--active {
     border-color: var(--accent-gold);
-    background: color-mix(in srgb, var(--accent-gold) 22%, transparent);
-    color: #fff;
+    background: var(--accent-gold);
+    color: #08070b;
   }
 
   @media (min-width: 1080px) {
     .site-header__bar-nav {
       display: flex;
+    }
+
+    .site-header__bar-locale {
+      display: inline-flex;
     }
 
     .site-header__menu-btn {

@@ -1,5 +1,6 @@
 <script>
   import { tick } from 'svelte';
+  import { browser } from '$app/environment';
 
   /** @type {string} */
   export let text = '';
@@ -25,6 +26,10 @@
   $: words = text.trim() ? text.trim().split(/\s+/) : [];
 
   function reveal() {
+    if (!browser) {
+      visible = true;
+      return;
+    }
     visible = false;
     tick().then(() => {
       requestAnimationFrame(() => {

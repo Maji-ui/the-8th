@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadMentors } from '$lib/data/cms.server';
 import { MENTOR_BY_ID } from '$lib/data/people';
+import { mentors as builtinMentors } from '$lib/data/mentors.js';
 
 export const prerender = true;
 
@@ -19,7 +20,12 @@ export async function load({ params, parent }) {
 	}
 
 	const { mentors } = await parent();
-	const mentor = mentors.find((m) => m.slug === params.slug);
+	let mentor = mentors.find((m) => m.slug === params.slug);
+	if (!mentor) {
+		// Fallback ai dati builtin quando il CMS è vuoto (es. dev senza Sanity)
+		const built = builtinMentors.find((m) => m.slug === params.slug);
+		if (built) mentor = { ...built, portrait: built.image };
+	}
 	if (!mentor) throw error(404, 'Mentor non trovato');
 	return { mentor };
 }

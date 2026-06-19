@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { getShowcaseFromList } from '$lib/data/showcase-registry.js';
+import { getShowcaseFromList, getBuiltinShowcaseBySlug } from '$lib/data/showcase-registry.js';
 import { loadShowcases } from '$lib/data/cms.server';
 import { STUDENT_BY_ID } from '$lib/data/people';
 
@@ -20,7 +20,8 @@ export async function load({ params, parent }) {
 	}
 
 	const { showcases } = await parent();
-	const student = getShowcaseFromList(showcases, params.slug);
+	// Fallback ai dati builtin quando il CMS è vuoto (es. dev senza Sanity)
+	const student = getShowcaseFromList(showcases, params.slug) ?? getBuiltinShowcaseBySlug(params.slug);
 	if (!student) throw error(404, 'Studente non trovato');
 	return { student };
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import '../app.css';
 	import '../lib/page-ui.css';
 	import PersistentStoryCta from '$lib/components/PersistentStoryCta.svelte';
@@ -33,6 +34,27 @@
 		document.body.classList.toggle('home-story-active', storyChrome);
 	});
 
+	// Page-slide stile Ignite: un sipario spazza lo schermo a ogni navigazione.
+	let curtain = $state('idle'); // 'idle' | 'cover' | 'reveal'
+	let revealTimer: ReturnType<typeof setTimeout> | undefined;
+	let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+	beforeNavigate((nav) => {
+		if (nav.willUnload || nav.to?.url.pathname === nav.from?.url.pathname) return;
+		clearTimeout(revealTimer);
+		clearTimeout(resetTimer);
+		curtain = 'cover';
+	});
+
+	afterNavigate(() => {
+		if (curtain !== 'cover') return;
+		// tiene il sipario un istante, poi lo fa uscire verso l'alto
+		revealTimer = setTimeout(() => {
+			curtain = 'reveal';
+			resetTimer = setTimeout(() => (curtain = 'idle'), 620);
+		}, 220);
+	});
+
 	onMount(() => initLocale());
 </script>
 
@@ -49,6 +71,14 @@
 {/if}
 <CookieConsent />
 <NewsletterPopup />
+
+<div
+	class="page-curtain page-curtain--{curtain}"
+	class:page-curtain--busy={curtain !== 'idle'}
+	aria-hidden="true"
+>
+	<span class="page-curtain__brand">THE 8th</span>
+</div>
 
 <main class:main--inner={!storyChrome} class:main--story={storyChrome}>
 	{@render children()}
@@ -122,6 +152,65 @@
 
 	.foot__tag {
 		text-align: right;
+	}
+
+	.page-curtain {
+		position: fixed;
+		inset: 0;
+		z-index: 250;
+		display: grid;
+		place-items: center;
+		background: #06060a;
+		transform: translateY(100%);
+		pointer-events: none;
+	}
+
+	.page-curtain--busy {
+		pointer-events: all;
+	}
+
+	.page-curtain--cover {
+		transform: translateY(0);
+		transition: transform 0.55s cubic-bezier(0.76, 0, 0.24, 1);
+	}
+
+	.page-curtain--reveal {
+		transform: translateY(-100%);
+		transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+	}
+
+	.page-curtain--idle {
+		transform: translateY(100%);
+		transition: none;
+	}
+
+	.page-curtain__brand {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: clamp(2rem, 8vw, 6rem);
+		letter-spacing: -0.04em;
+		color: var(--color-linen, #f3ead8);
+		opacity: 0;
+		transform: translateY(1rem);
+	}
+
+	.page-curtain--cover .page-curtain__brand {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity 0.4s ease 0.12s,
+			transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+	}
+
+	.page-curtain__brand :global(span),
+	.page-curtain--reveal .page-curtain__brand {
+		opacity: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.page-curtain {
+			display: none;
+		}
 	}
 
 	.main--inner,

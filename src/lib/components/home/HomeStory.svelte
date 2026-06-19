@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import HeroCarousel from '$lib/components/HeroCarousel.svelte';
-  import HomeStoryChapterIndex from './HomeStoryChapterIndex.svelte';
   import LocaleToggle from '$lib/components/LocaleToggle.svelte';
   import ScrollHint from '$lib/components/ScrollHint.svelte';
   import HomeStoryStatement from './HomeStoryStatement.svelte';
@@ -26,14 +25,27 @@
     storyVetrinaSlides
   } from '$lib/data/home-story.js';
   import { buildStoryTalentsFromShowcases } from '$lib/data/home-story-build.js';
+  import { talents as builtinTalents } from '$lib/data/talents.js';
   import {
-    buildHomeIndexChapters,
     buildHomePathSteps,
     codeForSection
   } from '$lib/data/home-chapters.js';
   import { t } from '$lib/i18n';
 
-  $: storyTalents = buildStoryTalentsFromShowcases($page.data.showcases ?? []);
+  $: storyTalents = (() => {
+    const fromCms = buildStoryTalentsFromShowcases($page.data.showcases ?? []);
+    if (fromCms.length) return fromCms;
+    // Fallback dati builtin (dev senza Sanity) così le liste restano visibili
+    return builtinTalents.map((t) => ({
+      slug: t.slug,
+      name: t.name,
+      project: t.project,
+      href: t.href ?? `/students/${t.slug}`,
+      cover: t.image ?? t.portrait ?? '',
+      portrait: t.portrait ?? '',
+      images: []
+    }));
+  })();
 
   let entered = false;
 
@@ -43,7 +55,6 @@
   const PATH_SCROLL_VH = 2.75;
 
   $: pathSteps = buildHomePathSteps($t, storyPathCoverImages);
-  $: homeChapters = buildHomeIndexChapters($t);
 
   $: if (typeof document !== 'undefined') {
     document.body.classList.toggle('home-story-gate-open', !entered);
@@ -153,9 +164,10 @@
     talents={storyTalents}
     bg={storyTones.charcoal}
     sectionCode={codeForSection(10)}
+    variant="list"
   />
 
-  <HomeStoryMentors bg={storyTones.ink} sectionCode={codeForSection(11)} />
+  <HomeStoryMentors bg={storyTones.ink} sectionCode={codeForSection(11)} variant="list" />
 
   <HomeStoryRail
     sectionId="home-chapter-works"
@@ -186,15 +198,6 @@
   />
 
   <HomeStoryFooter bg={storyTones.void} wide />
-
-  {#if entered}
-    <HomeStoryChapterIndex
-      chapters={homeChapters}
-      pathSection={pathSection}
-      pathScrollVh={PATH_SCROLL_VH}
-      pathStepCount={pathSteps.length}
-    />
-  {/if}
 </div>
 
 <style>

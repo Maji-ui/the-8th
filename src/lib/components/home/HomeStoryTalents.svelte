@@ -1,10 +1,17 @@
 <script>
   import MotionWords from '$lib/components/MotionWords.svelte';
   import MotionBlock from '$lib/components/MotionBlock.svelte';
+  import IgniteList from '$lib/components/IgniteList.svelte';
   import { reveal } from '$lib/reveal';
   import { t } from '$lib/i18n';
 
   let gridIn = false;
+
+  /** Layout: 'grid' (default) o 'list' (Ignite hover-reveal) */
+  export let variant = 'grid';
+
+  /** Etichetta CTA per riga nella variante list */
+  export let listCue = '';
 
   /** @type {{ slug: string, name: string, project: string, href: string, portrait?: string, cover: string, images: string[] }[]} */
   export let talents = [];
@@ -57,6 +64,17 @@
     </div>
   {/if}
 
+  {#if variant === 'list'}
+    <IgniteList
+      cue={listCue || $t('home.exploreAll')}
+      items={talents.map((tt) => ({
+        href: tt.href,
+        name: tt.name,
+        meta: tt.project,
+        image: tt.cover || tt.portrait
+      }))}
+    />
+  {:else}
   <div
     class="story-talents__grid"
     use:reveal={{ variant: 'fade', threshold: 0.08, onInView: () => (gridIn = true) }}
@@ -93,4 +111,5 @@
       </a>
     {/each}
   </div>
+  {/if}
 </section>
