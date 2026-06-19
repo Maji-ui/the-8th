@@ -15,6 +15,7 @@
   import HomeStoryNewsletter from './HomeStoryNewsletter.svelte';
   import HomeStoryFooter from './HomeStoryFooter.svelte';
   import HomeStoryTrustStrip from './HomeStoryTrustStrip.svelte';
+  import IgniteMarquee from '$lib/components/IgniteMarquee.svelte';
   import { page } from '$app/stores';
   import {
     storyTones,
@@ -36,6 +37,8 @@
   $: storyTalents = buildStoryTalentsFromShowcases($page.data.showcases ?? []);
 
   let entered = false;
+  let heroScale = 1;
+  let heroY = 0;
 
   /** @type {HTMLElement | null} */
   let pathSection = null;
@@ -51,6 +54,24 @@
 
   onMount(() => {
     if (sessionStorage.getItem('the8-story-entered') === '1') entered = true;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+
+    const onScroll = () => {
+      const vh = window.innerHeight || 1;
+      // zoom-on-scroll dell'hero: l'immagine cresce e fa parallax uscendo di scena
+      const p = Math.min(1, Math.max(0, window.scrollY / vh));
+      heroScale = 1 + p * 0.18;
+      heroY = p * 12;
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   });
 
   function enterStory() {
@@ -70,7 +91,7 @@
       <div class="home-story__gate-content">
         <p class="home-story__gate-kicker">THE 8th · 2025–26</p>
         <h1 class="home-story__gate-title t-display">THE <span>8th</span></h1>
-        <button type="button" class="home-story__gate-btn" on:click={enterStory}>
+        <button type="button" class="home-story__gate-btn" data-cursor="↗" on:click={enterStory}>
           {$t('home.storyEnter')}
         </button>
       </div>
@@ -80,7 +101,12 @@
   <section id="home-chapter-intro" class="home-story__hero" aria-label="Introduzione">
     <div class="home-story__hero-media" aria-hidden="true">
       {#if storyHeroImages[0]}
-        <img class="home-story__hero-bg" src={storyHeroImages[0]} alt="" />
+        <img
+          class="home-story__hero-bg"
+          src={storyHeroImages[0]}
+          alt=""
+          style="transform: scale({heroScale}) translate3d(0, {heroY}%, 0);"
+        />
       {/if}
       <div class="home-story__hero-veil"></div>
     </div>
@@ -127,6 +153,8 @@
     minVh={1}
   />
 
+  <IgniteMarquee text="THE 8th" variant="outline" speed={1.1} bg={storyTones.void} />
+
   <HomeStoryTrustStrip bg={storyTones.ink} />
 
   <HomeStoryPath
@@ -171,6 +199,14 @@
     images={storyVetrinaSlides}
     bg={storyTones.void}
     sectionCode={codeForSection(13)}
+  />
+
+  <IgniteMarquee
+    text={$t('home.heroTagline')}
+    variant="solid"
+    speed={-0.9}
+    bg={storyTones.charcoal}
+    separator={false}
   />
 
   <HomeStoryNewsletter bg={storyTones.ash} sectionCode={codeForSection(14)} />
@@ -318,6 +354,7 @@
     height: 100%;
     object-fit: cover;
     object-position: center 35%;
+    will-change: transform;
   }
 
   .home-story__hero-veil {

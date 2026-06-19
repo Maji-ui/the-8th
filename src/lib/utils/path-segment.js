@@ -35,10 +35,10 @@ export function pathImageLayers(progress, stepCount) {
 		const hidden = (1 - reveal) * 100;
 		const clip = wipeFromLeft ? `inset(0 ${hidden}% 0 0)` : `inset(0 0 0 ${hidden}%)`;
 
-		const scale = 1.14 - local * 0.1;
-		const shiftY = (local - 0.5) * 5;
-		const shiftX = wipeFromLeft ? (1 - reveal) * -3 : (1 - reveal) * 3;
-		const blur = Math.max(0, (1 - opacity) * 10 + (1 - reveal) * 6);
+		const scale = 1.2 - local * 0.16;
+		const shiftY = (local - 0.5) * 9;
+		const shiftX = wipeFromLeft ? (1 - reveal) * -5 : (1 - reveal) * 5;
+		const blur = Math.max(0, (1 - opacity) * 12 + (1 - reveal) * 7);
 
 		return {
 			opacity,

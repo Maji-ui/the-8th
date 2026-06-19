@@ -62,6 +62,15 @@ html {
 	color: var(--white);
 }
 
+/* Cursore custom IGNITE: nasconde il puntatore nativo solo su pointer fine */
+body.ignite-cursor-on,
+body.ignite-cursor-on a,
+body.ignite-cursor-on button,
+body.ignite-cursor-on [role='button'],
+body.ignite-cursor-on label {
+	cursor: none;
+}
+
 body {
 	font-family: var(--font-body);
 	font-size: var(--text-base, 1.0625rem);

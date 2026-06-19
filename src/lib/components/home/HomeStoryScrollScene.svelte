@@ -31,16 +31,43 @@
   $: opacities = imageOpacities(progress, images.length);
   $: phaseSplit = progress < 0.38 ? 0 : progress < 0.72 ? 1 : 2;
   $: phaseCenter = progress < 0.45 ? 0 : 1;
+  // Ken-burns: lo sfondo respira/zooma lungo tutto lo scroll (effetto Ignite).
+  $: zoom = 1.06 + progress * 0.16;
+  $: panY = (progress - 0.5) * -6;
+  $: lineShift = (0.5 - progress) * 3;
 
   onMount(() => {
+    let target = 0;
+    let raf = 0;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const settle = () => {
+      raf = 0;
+      const next = progress + (target - progress) * 0.16;
+      if (Math.abs(target - next) < 0.0004) {
+        progress = target;
+        return;
+      }
+      progress = next;
+      raf = requestAnimationFrame(settle);
+    };
+
     const onScroll = () => {
       if (!root) return;
-      progress = sectionProgress(root.getBoundingClientRect(), scrollVh);
+      target = sectionProgress(root.getBoundingClientRect(), scrollVh);
+      if (reduceMotion) {
+        progress = target;
+        return;
+      }
+      if (!raf) raf = requestAnimationFrame(settle);
     };
+
     onScroll();
+    progress = target;
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     return () => {
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -61,14 +88,17 @@
           class="story-scene__img"
           src={src}
           alt=""
-          style="opacity: {opacities[i]}"
+          style="opacity: {opacities[i]}; transform: scale({zoom}) translate3d(0, {panY}%, 0);"
           loading={i === 0 ? 'eager' : 'lazy'}
         />
       {/each}
       <div class="story-scene__veil"></div>
     </div>
 
-    <div class="story-scene__copy story-scene__copy--{layout}">
+    <div
+      class="story-scene__copy story-scene__copy--{layout}"
+      style="transform: translate3d(0, {lineShift}rem, 0);"
+    >
       {#if sectionCode}
         <p class="story-scene__section-code">{sectionCode}</p>
       {/if}
@@ -135,7 +165,7 @@
     height: 100%;
     object-fit: cover;
     transition: opacity 0.55s var(--ease-ribbit-out);
-    will-change: opacity;
+    will-change: opacity, transform;
   }
 
   .story-scene__veil {

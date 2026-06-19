@@ -13,6 +13,7 @@
 	import CookieConsent from '$lib/components/CookieConsent.svelte';
 	import NewsletterPopup from '$lib/components/NewsletterPopup.svelte';
 	import AiAssistantsStrip from '$lib/components/AiAssistantsStrip.svelte';
+	import IgniteCursor from '$lib/components/IgniteCursor.svelte';
 	import { initLocale } from '$lib/i18n';
 
 	let { children } = $props();
@@ -38,6 +39,7 @@
 
 <SeoHead />
 <Analytics />
+<IgniteCursor />
 <SiteThemeApply />
 <ScrollProgress />
 <SiteHeader />

@@ -33,4 +33,5 @@
 	<meta name="twitter:description" content={resolved.description} />
 	<link rel="alternate" hreflang="it" href={canonicalUrl(resolved.path ?? $page.url.pathname)} />
 	<link rel="alternate" hreflang="en" href={canonicalUrl(resolved.path ?? $page.url.pathname)} />
+	<link rel="alternate" type="text/plain" title="llms.txt" href={`${canonicalUrl('')}/llms.txt`} />
 </svelte:head>
