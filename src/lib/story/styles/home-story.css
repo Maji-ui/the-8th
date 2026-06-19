@@ -105,3 +105,9 @@ body.home-story-active .scroll-pct__num {
 body.home-story-active .scroll-pct__label {
   color: color-mix(in srgb, var(--color-linen) 48%, transparent);
 }
+
+@media (max-width: 640px) {
+  body.home-story-active {
+    --persistent-cta-safe: 7.75rem;
+  }
+}

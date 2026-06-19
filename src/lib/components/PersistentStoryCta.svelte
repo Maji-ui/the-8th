@@ -74,16 +74,36 @@
     background: color-mix(in srgb, var(--color-linen) 8%, transparent);
   }
 
-  @media (max-width: 520px) {
+  @media (max-width: 640px) {
+    :global(:root) {
+      --persistent-cta-safe: 7.75rem;
+    }
+
     .persistent-cta {
-      width: calc(100% - 1.25rem);
-      border-radius: 0.85rem;
+      flex-direction: column;
+      align-items: stretch;
+      width: min(18.5rem, calc(100vw - 1.5rem));
+      padding: 0;
+      gap: 0.5rem;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
     }
 
     .persistent-cta a {
-      flex: 1 1 auto;
       text-align: center;
       white-space: normal;
+      padding: 0.62rem 1rem;
+    }
+
+    .persistent-cta__secondary {
+      background: color-mix(in srgb, #06060a 82%, transparent);
+      backdrop-filter: blur(16px) saturate(1.15);
+      -webkit-backdrop-filter: blur(16px) saturate(1.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
     }
   }
 </style>
