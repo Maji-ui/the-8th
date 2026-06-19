@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import MotionIgniteWords from '$lib/components/MotionIgniteWords.svelte';
   import { sectionProgress } from '$lib/utils/scroll-progress.js';
-  import { pathImageLayers, pathSegmentState } from '$lib/utils/path-segment.js';
+  import { pathImageLayers, pathSegmentState, pathCopyLayers } from '$lib/utils/path-segment.js';
 
   /** @type {{ id: string, title: string, body: string, image?: string, images?: string[], layout?: string, num?: string, code?: string }[]} */
   export let steps = [];
@@ -26,21 +26,43 @@
   $: activeIndex = segmentState.index;
   $: localProgress = segmentState.local;
   $: activeStep = steps[activeIndex] ?? steps[0];
-  $: copyLayout = activeStep?.layout ?? 'bottom-left';
   $: imageLayers = pathImageLayers(progress, stepCount);
+  $: copyLayers = pathCopyLayers(progress, stepCount);
   $: scrubFill = stepCount > 0 ? ((activeIndex + localProgress) / stepCount) * 100 : 0;
-  $: bodyReveal = Math.min(1, Math.max(0, (localProgress - 0.08) / 0.42));
-  $: codeReveal = Math.min(1, Math.max(0, localProgress / 0.28));
 
   onMount(() => {
+    let target = 0;
+    let raf = 0;
+    let reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const settle = () => {
+      raf = 0;
+      // Lerp verso il target: lo scrub diventa fluido invece di scattare frame-per-frame.
+      const next = progress + (target - progress) * 0.16;
+      if (Math.abs(target - next) < 0.0004) {
+        progress = target;
+        return;
+      }
+      progress = next;
+      raf = requestAnimationFrame(settle);
+    };
+
     const onScroll = () => {
       if (!sectionEl) return;
-      progress = sectionProgress(sectionEl.getBoundingClientRect(), scrollVh);
+      target = sectionProgress(sectionEl.getBoundingClientRect(), scrollVh);
+      if (reduceMotion) {
+        progress = target;
+        return;
+      }
+      if (!raf) raf = requestAnimationFrame(settle);
     };
+
     onScroll();
+    progress = target;
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     return () => {
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -107,34 +129,34 @@
         {/if}
       {/each}
       <div class="story-path__grain" aria-hidden="true"></div>
-      <div class="story-path__veil" class:story-path__veil--center={copyLayout === 'center'}></div>
+      <div class="story-path__veil" class:story-path__veil--center={activeStep?.layout === 'center'}></div>
     </div>
 
-    <div class="story-path__copy story-path__copy--{copyLayout}">
-      <p
-        class="story-path__code"
-        style="opacity: {codeReveal}; transform: translate3d(0, {(1 - codeReveal) * 1.25}rem, 0)"
-      >
-        {activeStep?.code ?? '// 05'}
-      </p>
-      <MotionIgniteWords
-        as="h2"
-        className="story-path__title"
-        text={activeStep?.title ?? ''}
-        resetKey={activeIndex}
-        delay={60}
-      />
-      <p
-        class="story-path__body"
+    {#each steps as step, i (step.id)}
+      {@const layer = copyLayers[i] ?? { opacity: i === 0 ? 1 : 0, drift: 0, reveal: i === 0 ? 1 : 0 }}
+      <div
+        class="story-path__copy story-path__copy--{step.layout ?? 'bottom-left'}"
+        class:story-path__copy--active={i === activeIndex}
         style="
-          opacity: {bodyReveal};
-          transform: translate3d(0, {(1 - bodyReveal) * 1.75}rem, 0);
-          clip-path: inset(0 0 {(1 - bodyReveal) * 100}% 0);
+          opacity: {layer.opacity};
+          z-index: {layer.zIndex ?? i + 1};
+          --copy-drift: {layer.drift}rem;
+          --copy-reveal: {layer.reveal};
+          pointer-events: {layer.opacity > 0.6 ? 'auto' : 'none'};
         "
+        aria-hidden={i === activeIndex ? undefined : 'true'}
       >
-        {activeStep?.body ?? ''}
-      </p>
-    </div>
+        <p class="story-path__code">{step.code ?? step.num ?? ''}</p>
+        <MotionIgniteWords
+          as="h2"
+          className="story-path__title"
+          text={step.title ?? ''}
+          resetKey={i === activeIndex ? 1 : 0}
+          delay={60}
+        />
+        <p class="story-path__body">{step.body ?? ''}</p>
+      </div>
+    {/each}
   </div>
 </section>
 
@@ -328,6 +350,9 @@
     z-index: 4;
     padding: clamp(1.25rem, 3.5vh, 2rem) max(var(--editorial-pad), var(--chapter-index-safe, 3.75rem));
     max-width: min(38rem, 90vw);
+    will-change: opacity, transform;
+    transition: opacity 0.14s linear;
+    transform: translate3d(0, var(--copy-drift, 0), 0);
   }
 
   .story-path__copy--bottom-left {
@@ -359,7 +384,7 @@
   .story-path__copy--center {
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, calc(-50% + var(--copy-drift, 0)));
     text-align: center;
     max-width: min(36rem, 88vw);
   }
@@ -370,7 +395,16 @@
     letter-spacing: 0.12em;
     text-transform: none;
     color: color-mix(in srgb, var(--accent-gold) 82%, var(--color-linen));
+    opacity: var(--copy-reveal, 1);
+    transform: translate3d(0, calc((1 - var(--copy-reveal, 1)) * 1.25rem), 0);
     will-change: transform, opacity;
+  }
+
+  .story-path__copy .story-path__body {
+    opacity: calc(var(--copy-reveal, 1) * var(--copy-reveal, 1));
+    transform: translate3d(0, calc((1 - var(--copy-reveal, 1)) * 1.75rem), 0);
+    clip-path: inset(0 0 calc((1 - var(--copy-reveal, 1)) * 100%) 0);
+    will-change: transform, opacity, clip-path;
   }
 
   .story-path :global(.story-path__title) {

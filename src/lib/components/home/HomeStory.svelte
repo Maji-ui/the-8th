@@ -240,7 +240,9 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: radial-gradient(circle at 50% 38%, transparent 0%, rgba(6, 6, 10, 0.78) 68%);
+    background:
+      radial-gradient(circle at 50% 42%, rgba(6, 6, 10, 0.35) 0%, rgba(6, 6, 10, 0.82) 70%),
+      linear-gradient(180deg, rgba(6, 6, 10, 0.55) 0%, rgba(6, 6, 10, 0.35) 45%, rgba(6, 6, 10, 0.8) 100%);
     pointer-events: none;
   }
 
@@ -256,13 +258,15 @@
     font-size: var(--type-label);
     letter-spacing: 0.04em;
     text-transform: none;
-    color: color-mix(in srgb, var(--color-linen) 55%, transparent);
+    color: color-mix(in srgb, var(--color-linen) 78%, transparent);
+    text-shadow: 0 1px 18px rgba(6, 6, 10, 0.7);
   }
 
   .home-story__gate-title {
     margin: 0;
     color: var(--color-linen);
     line-height: 0.9;
+    text-shadow: 0 2px 32px rgba(6, 6, 10, 0.65);
   }
 
   .home-story__gate-title span {
@@ -270,16 +274,19 @@
   }
 
   .home-story__gate-btn {
-    margin-top: 1.5rem;
-    border: 1px solid color-mix(in srgb, var(--color-linen) 35%, transparent);
+    margin-top: 1.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-linen) 55%, transparent);
     border-radius: 999px;
-    padding: 0.65rem 1.35rem;
-    background: transparent;
+    padding: 0.8rem 1.85rem;
+    background: color-mix(in srgb, var(--color-linen) 12%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     color: var(--color-linen);
     font-size: var(--type-link);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: none;
     cursor: pointer;
+    box-shadow: 0 8px 32px rgba(6, 6, 10, 0.45);
     transition:
       background 0.3s ease,
       border-color 0.3s ease,
@@ -288,8 +295,8 @@
 
   .home-story__gate-btn:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--color-linen) 55%, transparent);
-    background: color-mix(in srgb, var(--color-linen) 8%, transparent);
+    border-color: var(--accent-gold);
+    background: color-mix(in srgb, var(--accent-gold) 18%, transparent);
   }
 
   .home-story__hero {

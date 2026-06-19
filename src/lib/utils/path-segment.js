@@ -54,6 +54,45 @@ export function pathImageLayers(progress, stepCount) {
 }
 
 /**
+ * Stato per ogni blocco di copy (testo) del percorso: crossfade + parallax,
+ * così i passaggi tra capitoli non "saltano" da un angolo all'altro.
+ * @param {number} progress 0–1 sull’intera sezione
+ * @param {number} stepCount
+ */
+export function pathCopyLayers(progress, stepCount) {
+	if (stepCount <= 0) return [];
+
+	const segment = 1 / stepCount;
+	const fade = segment * 0.3;
+
+	return Array.from({ length: stepCount }, (_, i) => {
+		const start = i * segment;
+		const end = (i + 1) * segment;
+		const local = Math.min(1, Math.max(0, (progress - start) / segment));
+
+		const inFadeIn = progress < start + fade;
+		const inFadeOut = progress > end - fade;
+
+		let opacity;
+		if (progress < start - fade || progress > end + fade) {
+			opacity = 0;
+		} else if (inFadeIn && i > 0) {
+			opacity = smoothstep((progress - (start - fade)) / (fade * 2));
+		} else if (inFadeOut && i < stepCount - 1) {
+			opacity = 1 - smoothstep((progress - (end - fade)) / (fade * 2));
+		} else {
+			opacity = 1;
+		}
+
+		// Drift verticale: entra dal basso, scivola verso l'alto uscendo (parallax).
+		const drift = (local - 0.5) * 2.6;
+		const reveal = smoothstep(Math.min(1, local / 0.34));
+
+		return { opacity, local, drift, reveal, zIndex: i + 1 };
+	});
+}
+
+/**
  * @param {number} progress
  * @param {number} stepCount
  */
