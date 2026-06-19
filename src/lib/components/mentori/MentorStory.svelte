@@ -1,19 +1,17 @@
 <script>
   import PeopleProfileMeta from '$lib/components/story/PeopleProfileMeta.svelte';
   import PeopleProfileSplit from '$lib/components/story/PeopleProfileSplit.svelte';
-  import PeopleRecognitions from '$lib/components/story/PeopleRecognitions.svelte';
-  import PeopleIndexRow from '$lib/components/story/PeopleIndexRow.svelte';
+  import StoryMentorNav from '$lib/components/story/StoryMentorNav.svelte';
   import HomeStoryNewsletter from '$lib/components/home/HomeStoryNewsletter.svelte';
   import HomeStoryFooter from '$lib/components/home/HomeStoryFooter.svelte';
   import { page } from '$app/stores';
   import {
-    mentors as builtinMentors,
     mentorRole,
     mentorBio,
     getMentorNeighborsFrom
   } from '$lib/data/mentors.js';
-  import { EDITION_PAIRS } from '$lib/data/pairs.js';
-  import { excerpt, recognitionFromText, roleKicker } from '$lib/people-format.js';
+  import { mentorPortrait } from '$lib/data/mentor-media.js';
+  import { roleKicker } from '$lib/people-format.js';
   import PageNav from '$lib/components/PageNav.svelte';
   import { trailMentor } from '$lib/navigation/trails.js';
   import { storyTones } from '$lib/data/home-story.js';
@@ -24,10 +22,10 @@
   /** @type {import('$lib/data/mentors.js').mentors[number]} */
   export let mentor;
 
-  $: mentors = $page.data.mentors?.length ? $page.data.mentors : builtinMentors;
-  $: isEn = $locale === 'en';
+  $: mentors = $page.data.mentors ?? [];
+  $: editionPairs = $page.data.editionPairs ?? [];
   $: neighbors = getMentorNeighborsFrom(mentors, mentor.slug);
-  $: pair = EDITION_PAIRS.find((p) => p.mentorSlug === mentor.slug);
+  $: pair = editionPairs.find((p) => p.mentorSlug === mentor.slug);
   $: index = neighbors.index >= 0 ? neighbors.index : 0;
   $: total = mentors.length;
   $: tag = `M.${String(index + 1).padStart(2, '0')}`;
@@ -49,18 +47,7 @@
       : [])
   ];
 
-  $: recognitionItems = recognitionFromText(
-    mentorBio(mentor, $locale),
-    3,
-    $t('people.editionYear')
-  );
-
-  $: rowItems = mentors.map((m) => ({
-    href: `/mentors/${m.slug}`,
-    kicker: roleKicker(mentorRole(m, $locale)),
-    name: m.name,
-    excerpt: excerpt(mentorBio(m, $locale))
-  }));
+  $: portrait = mentorPortrait(mentor);
 </script>
 
 <svelte:head>
@@ -76,7 +63,7 @@
   />
 
   <PeopleProfileSplit
-    image={mentor.image}
+    image={portrait}
     imageAlt={mentor.name}
     imageSide="right"
     {tag}
@@ -86,16 +73,13 @@
     {actions}
   />
 
-  <PeopleRecognitions
-    sectionCode="04 / 05 · {$t('people.recognitions')}"
-    title={$t('people.awardsTitle')}
-    items={recognitionItems}
-    backLink={{ href: '/mentors', label: $t('people.allMentors') }}
+  <StoryMentorNav
+    currentSlug={mentor.slug}
+    bg={storyTones.charcoal}
+    sectionCode="02 / 02"
+    showFlow={false}
+    peersOnly={true}
   />
-
-  <section class="people-index-section" aria-label={$t('profile.exploreMentors')}>
-    <PeopleIndexRow items={rowItems} ctaLabel={$t('people.openProfile')} />
-  </section>
 
   <HomeStoryNewsletter bg={storyTones.ash} wide />
 

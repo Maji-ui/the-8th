@@ -27,25 +27,32 @@
   /** @type {string} */
   export let sectionLede = '';
 
+  /** @type {string} */
+  export let sectionId = 'home-talents';
+
+  /** @type {string} */
+  export let ctaHref = '/students';
+
   $: titleText = sectionTitle || $t('home.talentsTitle');
   $: ledeText = sectionLede || $t('home.talentsLead');
+  $: titleId = `${sectionId}-title`;
 </script>
 
-<section class="story-talents" id="home-talents" style="--story-bg: {bg}" aria-labelledby="story-talents-title">
+<section class="story-talents" id={sectionId} style="--story-bg: {bg}" aria-labelledby={titleId}>
   {#if showHead}
-    <div class="story-talents__head">
-      <p class="story-talents__code">{sectionCode}</p>
+    <div class="story-talents__head story-editorial-head">
+      <p class="story-talents__code story-editorial-head__code">{sectionCode}</p>
       <MotionWords
         as="h2"
-        id="story-talents-title"
-        className="story-talents__title"
+        id={titleId}
+        className="story-talents__title story-editorial-head__title"
         text={titleText}
       />
       <MotionBlock delay={140}>
-        <p class="story-talents__lede">{ledeText}</p>
+        <p class="story-talents__lede story-editorial-head__lede">{ledeText}</p>
       </MotionBlock>
       {#if showCta}
-        <a class="story-talents__cta" href="/students">{$t('home.exploreAll')}</a>
+        <a class="story-talents__cta" href={ctaHref}>{$t('home.exploreAll')}</a>
       {/if}
     </div>
   {/if}

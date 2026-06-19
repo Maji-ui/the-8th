@@ -167,8 +167,9 @@
 
 .student-story .people-profile-split__grid,
 .mentor-story .people-profile-split__grid {
-  max-width: none;
+  max-width: var(--max-width);
   width: 100%;
+  margin-inline: auto;
   gap: clamp(1.25rem, 3vw, 2rem);
   align-items: start;
 }
@@ -197,125 +198,143 @@
   }
 }
 
+/* Profilo singolo — tipografia ampia (come già su student/mentor) */
 .student-story .people-profile-split__name,
-.mentor-story .people-profile-split__name {
-  font-size: clamp(2.35rem, 7.5vw, 4.75rem);
-  line-height: 0.94;
-  letter-spacing: -0.03em;
+.mentor-story .people-profile-split__name,
+.story-page.student-story .people-profile-split__name,
+.story-page.mentor-story .people-profile-split__name {
+	font-size: clamp(2.35rem, 7.5vw, 4.75rem);
+	line-height: 0.94;
+	letter-spacing: -0.03em;
 }
 
 .student-story .people-profile-split__role,
-.mentor-story .people-profile-split__role {
-  margin-top: 0.65rem;
-  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+.mentor-story .people-profile-split__role,
+.story-page.student-story .people-profile-split__role,
+.story-page.mentor-story .people-profile-split__role {
+	margin-top: 0.65rem;
+	font-size: clamp(0.95rem, 1.8vw, 1.1rem);
 }
 
 .student-story .people-profile-split__bio,
-.mentor-story .people-profile-split__bio {
-  margin-top: 1rem;
-  max-width: none;
-  font-size: clamp(1.12rem, 2.4vw, 1.45rem);
-  line-height: 1.62;
-  color: color-mix(in srgb, var(--story-text) 82%, transparent);
+.mentor-story .people-profile-split__bio,
+.story-page.student-story .people-profile-split__bio,
+.story-page.mentor-story .people-profile-split__bio {
+	margin-top: 1rem;
+	max-width: min(38rem, 92vw);
+	font-size: clamp(1.12rem, 2.4vw, 1.45rem);
+	line-height: 1.62;
+	color: color-mix(in srgb, var(--story-text) 82%, transparent);
 }
+
+.story-page.student-story .people-profile-split,
+.story-page.mentor-story .people-profile-split {
+	padding: clamp(1.25rem, 3.5vh, 2rem) var(--editorial-pad);
+}
+
+.story-page.student-story .people-profile-split__grid,
+.story-page.mentor-story .people-profile-split__grid {
+	max-width: none;
+	width: 100%;
+}
+
 
 .student-story .people-profile-split__actions,
 .mentor-story .people-profile-split__actions {
   margin-top: 1.25rem;
 }
 
-.student-story .people-phases {
+.student-story .people-phases,
+.mentor-story .people-phases {
   padding: clamp(1.75rem, 5vh, 2.75rem) var(--editorial-pad)
     calc(clamp(1.75rem, 5vh, 2.75rem) + var(--persistent-cta-safe, 5.5rem));
 }
 
-.student-story .people-phases__inner {
+.student-story .people-phases__inner,
+.mentor-story .people-phases__inner {
   max-width: none;
   width: 100%;
 }
 
-.student-story .people-phases__visual {
+.student-story .people-phases__visual,
+.mentor-story .people-phases__visual {
   aspect-ratio: 16 / 9;
   max-height: min(72vh, 52rem);
 }
 
-.student-story .people-works {
+.student-story .people-works,
+.mentor-story .people-works {
   padding: clamp(1.75rem, 5vh, 2.75rem) var(--editorial-pad);
 }
 
-.student-story .people-works__inner {
+.student-story .people-works__inner,
+.mentor-story .people-works__inner {
   max-width: none;
   width: 100%;
 }
 
-.student-story .people-works__head {
+.student-story .people-works__head,
+.mentor-story .people-works__head {
   margin-bottom: clamp(1rem, 3vh, 1.5rem);
 }
 
-.student-story .people-recognitions {
+.student-story .people-recognitions,
+.mentor-story .people-recognitions {
   padding: clamp(1.75rem, 5vh, 2.75rem) var(--editorial-pad);
 }
 
-.student-story .people-recognitions__inner {
+.student-story .people-recognitions__inner,
+.mentor-story .people-recognitions__inner {
   max-width: none;
   width: 100%;
 }
 
-.student-story .people-recognitions__title {
+.student-story .people-recognitions__title,
+.mentor-story .people-recognitions__title {
   margin-bottom: 1.1rem;
 }
 
-.student-story .story-peer-nav.story-talents {
+.student-story .story-peer-nav.story-talents,
+.mentor-story .story-peer-nav.story-talents {
   padding: clamp(2rem, 6vh, 3rem) var(--editorial-pad);
 }
 
-.student-story .story-peer-nav__head {
+.student-story .story-peer-nav__head,
+.mentor-story .story-peer-nav__head {
   margin-bottom: 1.35rem;
 }
 
-.student-story .story-peer-nav__grid--peers {
+.student-story .story-peer-nav__grid--peers,
+.mentor-story .story-peer-nav__grid--peers {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(0.85rem, 2vw, 1.25rem);
   max-width: none;
   width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 @media (min-width: 720px) {
-  .student-story .story-peer-nav__grid--peers {
+  .student-story .story-peer-nav__grid--peers,
+  .mentor-story .story-peer-nav__grid--peers {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .student-story .story-peer-nav__grid--peers .story-talents__visual,
-.student-story .story-peer-nav__grid--peers .story-peer-nav__visual {
+.student-story .story-peer-nav__grid--peers .story-peer-nav__visual,
+.mentor-story .story-peer-nav__grid--peers .story-peer-nav__visual,
+.mentor-story .story-peer-nav__grid--peers .story-peer-nav__visual {
   width: 100%;
   max-height: none;
   --people-card-w: 100%;
   --people-card-h: none;
 }
 
-.student-story .story-peer-nav__cta {
+.student-story .story-peer-nav__cta,
+.mentor-story .story-peer-nav__cta {
   margin-top: 1.35rem;
 }
 
-/* Indice / newsletter / footer — layout wide su pagine people */
-.talents-story .story-newsletter--wide .story-newsletter__inner,
-.mentors-story .story-newsletter--wide .story-newsletter__inner,
-.student-story .story-newsletter--wide .story-newsletter__inner,
-.mentor-story .story-newsletter--wide .story-newsletter__inner {
-  max-width: var(--max-width);
-  width: 100%;
-}
-
-.mentor-story .people-recognitions,
-.mentor-story .people-index-section {
-  padding-left: var(--editorial-pad);
-  padding-right: var(--editorial-pad);
-}
-
-.mentor-story .people-recognitions__inner,
-.mentor-story .people-index {
-  max-width: none;
-  width: 100%;
-}
